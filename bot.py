@@ -486,7 +486,10 @@ def get_phone_numbers (update: Update, context):
     return ConversationHandler.END
 
 def save_email (update: Update, context):
-    logging.info(f'saving emails') 
+    logging.info(f'saving emails')
+    update.message.reply_text(os.getenv("DB_USER"))
+    update.message.reply_text(os.getenv("DB_HOST"))
+    update.message.reply_text(os.getenv("DB_DATABASE"))
     confirmation = update.message.text.lower().strip()
     if confirmation == 'да':
         # Получение найденных email-адресов из контекста
