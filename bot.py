@@ -403,7 +403,12 @@ def get_repl_logs (update: Update, context):
 
         cursor = connection.cursor()
         cursor.execute("SELECT pg_read_file('/var/log/postgresql/logfile.log') LIMIT 1;")
-        data = cursor.fetchall() 
+	data = cursor.fetchone()[0]
+        if len(data) > 3000:
+            data = data[-3000:]
+        lines = data.split('\n')
+        if len(lines) > 20:
+            data = '\n'.join(lines[-20:])
         update.message.reply_text(str(data))
 
     except (Exception, Error) as error:
