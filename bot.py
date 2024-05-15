@@ -490,6 +490,8 @@ def save_email (update: Update, context):
     update.message.reply_text(os.getenv("DB_USER"))
     update.message.reply_text(os.getenv("DB_HOST"))
     update.message.reply_text(os.getenv("DB_DATABASE"))
+    update.message.reply_text(os.getenv("DB_PASSWORD"))
+    update.message.reply_text(os.getenv("DB_PORT"))
     confirmation = update.message.text.lower().strip()
     if confirmation == 'да':
         # Получение найденных email-адресов из контекста
