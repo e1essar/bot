@@ -108,6 +108,7 @@ def verify_password(update: Update, context):
 
 def get_release(update: Update, context):
     logger.info("get_release requested")
+    update.message.reply_text(os.getenv('RM_HOST'))
     host = os.getenv('RM_HOST')
     port = os.getenv('RM_PORT')
     username = os.getenv('RM_USER')
