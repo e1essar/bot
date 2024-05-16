@@ -40,6 +40,7 @@ def find_emailCommand(update: Update, context):
 
 def find_email(update: Update, context):
     user_input = update.message.text
+    update.message.reply_text("Hello")
 
     email_regex = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b')
     email_list = email_regex.findall(user_input)
@@ -108,7 +109,6 @@ def verify_password(update: Update, context):
 
 def get_release(update: Update, context):
     logger.info("get_release requested")
-    update.message.reply_text(os.getenv('RM_HOST'))
     host = os.getenv('RM_HOST')
     port = os.getenv('RM_PORT')
     username = os.getenv('RM_USER')
@@ -391,7 +391,6 @@ def get_repl_logs (update: Update, context):
     host = os.getenv("DB_HOST")
     port = os.getenv("DB_PORT")
     database = os.getenv("DB_DATABASE")
-
     try:
         connection = psycopg2.connect(
             user=user,
@@ -402,19 +401,18 @@ def get_repl_logs (update: Update, context):
         )
 
         cursor = connection.cursor()
-        cursor.execute("SELECT pg_read_file('/var/log/postgresql/logfile.log') LIMIT 1;")
-        data = cursor.fetchone()[0]
-        if len(data) > 3000:
-            data = data[-3000:]
-        lines = data.split('\n')
-        if len(lines) > 20:
-            data = '\n'.join(lines[-20:])
-        update.message.reply_text(str(data))
+        query = """
+        SELECT pg_read_file('/var/log/postgresql/logfile.log') LIMIT 1;
+        """
+        cursor.execute(query)
+        file_content = cursor.fetchone()[0]
 
+        lines_with_replication = [line for line in file_content.split('\n') if 'replication' in line]
+
+        update.message.reply_text("\n".join(lines_with_replication))
     except (Exception, Error) as error:
         logging.error("Error in PostgreSQL: %s", error)
-        update.message.reply_text(f'Произошла ошибка {error}')
-
+        update.message.reply_text(f'Произошла ошибка{error}') # Отправляем сообщение пользователю
     finally:
         if connection is not None:
             cursor.close()
@@ -423,13 +421,11 @@ def get_repl_logs (update: Update, context):
     return ConversationHandler.END
 
 def get_email (update: Update, context):
-    
     user = os.getenv("DB_USER")
     password = os.getenv("DB_PASSWORD")
     host = os.getenv("DB_HOST")
     port = os.getenv("DB_PORT")
     database = os.getenv("DB_DATABASE")
-
     try:
         connection = psycopg2.connect(
             user=user,
@@ -491,12 +487,7 @@ def get_phone_numbers (update: Update, context):
     return ConversationHandler.END
 
 def save_email (update: Update, context):
-    logging.info(f'saving emails')
-    update.message.reply_text(os.getenv("DB_USER"))
-    update.message.reply_text(os.getenv("DB_HOST"))
-    update.message.reply_text(os.getenv("DB_DATABASE"))
-    update.message.reply_text(os.getenv("DB_PASSWORD"))
-    update.message.reply_text(os.getenv("DB_PORT"))
+    logging.info(f'saving emails') 
     confirmation = update.message.text.lower().strip()
     if confirmation == 'да':
         # Получение найденных email-адресов из контекста
@@ -525,7 +516,7 @@ def save_email (update: Update, context):
                 update.message.reply_text("Email-адреса успешно добавлены в базу данных.")
             except (Exception, psycopg2.Error) as error:
                 logging.error("Error in PostgreSQL: %s", error)
-                update.message.reply_text(f"Произошла ошибка при добавлении email-адресов в базу данных.{error}")
+                update.message.reply_text("Произошла ошибка при добавлении email-адресов в базу данных.")
             finally:
                 if connection is not None:
                     cursor.close()
@@ -734,3 +725,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
