@@ -402,12 +402,14 @@ def get_repl_logs (update: Update, context):
 
         cursor = connection.cursor()
         query = """
-        SELECT pg_read_file('/var/log/postgresql/logfile.log') LIMIT 1;
+        SELECT pg_read_file('/var/log/postgresql/logfile.log') AS logfile;
         """
         cursor.execute(query)
         file_content = cursor.fetchone()[0]
 
-        lines_with_replication = [line for line in file_content.split('\n') if 'replication' in line]
+        max_lines = 10
+	lines_with_replication = file_content.split('\n')[-max_lines:]
+	lines_with_replication = [line for line in lines_with_replication if 'replication' in line]
 
         update.message.reply_text("\n".join(lines_with_replication))
     except (Exception, Error) as error:
